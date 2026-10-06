@@ -586,6 +586,7 @@ model OpportunityAllocation {
   opportunity     Opportunity      @relation(fields: [opportunityId], references: [id], onDelete: Restrict)
   pricingRule     PricingRule?     @relation(fields: [pricingRuleId], references: [id], onDelete: SetNull)
   invoiceLine     InvoiceLine?
+  disputes        Dispute[]
 
   @@unique([companyId, opportunityId])
   @@index([companyId, status, allocatedAt])
@@ -664,24 +665,27 @@ model InvoiceLine {
 }
 
 model Dispute {
-  id             String        @id @default(uuid()) @db.Uuid
-  companyId      String        @db.Uuid
-  allocationId   String        @db.Uuid
-  openedByUserId String?       @db.Uuid
-  status         DisputeStatus @default(OPEN)
-  reason         String
-  notes          String?
-  resolution     String?
-  resolvedAt     DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  company        Company       @relation("DisputeCompany", fields: [companyId], references: [id], onDelete: Restrict)
-  allocation     Allocation    @relation(fields: [allocationId], references: [id], onDelete: Restrict)
-  openedBy       User?         @relation("DisputeOpenedBy", fields: [openedByUserId], references: [id], onDelete: SetNull)
-  auditLogs      AuditLog[]
+  id                      String                 @id @default(uuid()) @db.Uuid
+  companyId               String                 @db.Uuid
+  allocationId            String?                @db.Uuid
+  opportunityAllocationId String?                @db.Uuid
+  openedByUserId          String?                @db.Uuid
+  status                  DisputeStatus          @default(OPEN)
+  reason                  String
+  notes                   String?
+  resolution              String?
+  resolvedAt              DateTime?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  company                 Company                @relation("DisputeCompany", fields: [companyId], references: [id], onDelete: Restrict)
+  allocation              Allocation?            @relation(fields: [allocationId], references: [id], onDelete: Restrict)
+  opportunityAllocation   OpportunityAllocation? @relation(fields: [opportunityAllocationId], references: [id], onDelete: Restrict)
+  openedBy                User?                  @relation("DisputeOpenedBy", fields: [openedByUserId], references: [id], onDelete: SetNull)
+  auditLogs               AuditLog[]
 
   @@index([companyId, status, createdAt])
   @@index([allocationId])
+  @@index([opportunityAllocationId])
 }
 
 model AuditLog {

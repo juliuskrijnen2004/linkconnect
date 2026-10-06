@@ -1,0 +1,4 @@
+"use client";
+import { useState } from "react";
+const statuses = ["NEW", "CONTACTED", "INTERVIEW", "HIRED", "REJECTED"];
+export function CandidateStatusForm({ opportunityId, value }: { opportunityId: string; value: string }) { const [status, setStatus] = useState(value); const [message, setMessage] = useState(""); async function save() { const response = await fetch(`/api/candidates/${opportunityId}/status`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status }) }); setMessage(response.ok ? "Status opgeslagen." : "Status kon niet worden opgeslagen."); } return <div className="form-row"><label>Status<select value={status} onChange={(event) => setStatus(event.target.value)}>{statuses.map((item) => <option key={item}>{item}</option>)}</select></label><button className="button primary" type="button" onClick={save}>Opslaan</button>{message ? <p>{message}</p> : null}</div>; }

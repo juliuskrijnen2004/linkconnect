@@ -1,0 +1,767 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  COMPANY
+  ADMIN
+}
+
+enum CompanyStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  REJECTED
+}
+
+enum MandateStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  FAILED
+  REVOKED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum ApiKeyStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum LeadSourceStatus {
+  ACTIVE
+  PAUSED
+  REVOKED
+}
+
+enum LeadStatus {
+  NEW
+  MATCHED
+  ALLOCATED
+  CLOSED
+}
+
+enum OpportunityType {
+  SALES_LEAD
+  CANDIDATE
+}
+
+enum CandidateStatus {
+  NEW
+  CONTACTED
+  INTERVIEW
+  HIRED
+  REJECTED
+}
+
+enum AllocationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  INVOICED
+  DISPUTED
+  CREDITED
+}
+
+enum CompanyLeadStatus {
+  NEW
+  VIEWED
+  CONTACTED
+  APPOINTMENT
+  WON
+  LOST
+  DISPUTED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_COMPANY
+  RESOLVED_PLATFORM
+  REJECTED
+}
+
+enum AuditActorType {
+  USER
+  API_KEY
+  SYSTEM
+  STRIPE
+}
+
+model Company {
+  id                      String                   @id @default(uuid()) @db.Uuid
+  name                    String
+  slug                    String                   @unique
+  stripeCustomerId        String?                  @unique
+  contactName             String?
+  email                   String?
+  phone                   String?
+  website                 String?
+  kvkNumber               String?
+  vatNumber               String?
+  status                  CompanyStatus            @default(PENDING)
+  leadDeliveryActive      Boolean                  @default(false)
+  candidateDeliveryActive Boolean                  @default(false)
+  minimumWeeklyLeads      Int                      @default(2)
+  approvedAt              DateTime?
+  pausedAt                DateTime?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  users                   User[]
+  apiKeys                 ApiKey[]
+  sourcedLeads            Lead[]                   @relation("LeadSourceCompany")
+  allocations             Allocation[]
+  pricingRules            PricingRule[]
+  invoices                Invoice[]
+  auditLogs               AuditLog[]
+  disputes                Dispute[]                @relation("DisputeCompany")
+  stripeEvents            StripeWebhookEvent[]
+  preferences             CompanyLeadPreference[]
+  regions                 CompanyRegion[]
+  agreements              CompanyAgreement[]
+  mandates                SepaMandate[]
+  payments                Payment[]
+  notifications           NotificationPreference[]
+  weeklyCommitments       WeeklyCommitment[]
+  outboxEvents            OutboxEvent[]
+  leadSources             LeadSource[]
+  candidatePreferences    CandidatePreference[]
+  opportunityAllocations  OpportunityAllocation[]
+  opportunities           Opportunity[]            @relation("OpportunitySourceCompany")
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  companyId    String?    @db.Uuid
+  email        String     @unique
+  name         String?
+  passwordHash String
+  role         Role       @default(COMPANY)
+  sessionVer   Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  company      Company?   @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  auditLogs    AuditLog[]
+  disputes     Dispute[]  @relation("DisputeOpenedBy")
+
+  @@index([companyId])
+}
+
+model ApiKey {
+  id                  String         @id @default(uuid()) @db.Uuid
+  companyId           String         @db.Uuid
+  leadSourceId        String?        @db.Uuid
+  name                String
+  prefix              String
+  keyHash             String         @unique
+  hmacRequired        Boolean        @default(false)
+  hmacSecretEncrypted String?
+  scopes              String[]       @default(["leads:write"])
+  status              ApiKeyStatus   @default(ACTIVE)
+  lastUsedAt          DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime       @default(now())
+  revokedAt           DateTime?
+  company             Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  leadSource          LeadSource?    @relation(fields: [leadSourceId], references: [id], onDelete: SetNull)
+  ingestedLeads       Lead[]
+  auditLogs           AuditLog[]
+  replayClaims        IngestReplay[]
+  opportunities       Opportunity[]
+
+  @@index([companyId, status])
+  @@index([leadSourceId, status])
+}
+
+model LeadSource {
+  id                   String           @id @default(uuid()) @db.Uuid
+  companyId            String           @db.Uuid
+  name                 String
+  slug                 String
+  domain               String?
+  status               LeadSourceStatus @default(ACTIVE)
+  allowedCategorySlugs String[]         @default([])
+  allowedServices      String[]         @default([])
+  // The publisher owns this ceiling. Ingest clients may request fewer buyers,
+  // but can never expand distribution beyond the source contract.
+  maxRecipientsPerLead Int              @default(1)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  lastUsedAt           DateTime?
+  company              Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  apiKeys              ApiKey[]
+  leads                Lead[]
+  opportunities        Opportunity[]
+
+  @@unique([companyId, slug])
+  @@index([status, domain])
+}
+
+model Lead {
+  id               String       @id @default(uuid()) @db.Uuid
+  sourceCompanyId  String       @db.Uuid
+  leadSourceId     String?      @db.Uuid
+  sourceApiKeyId   String?      @db.Uuid
+  externalId       String?
+  fingerprint      String
+  status           LeadStatus   @default(NEW)
+  category         String
+  service          String?
+  sourceWebsite    String?
+  city             String?
+  region           String?
+  description      String?
+  maxBuyersPerLead Int          @default(1)
+  exclusive        Boolean      @default(true)
+  postalCode       String
+  consentAt        DateTime
+  contact          Json
+  attributes       Json         @default("{}")
+  receivedAt       DateTime     @default(now())
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  sourceCompany    Company      @relation("LeadSourceCompany", fields: [sourceCompanyId], references: [id], onDelete: Restrict)
+  leadSource       LeadSource?  @relation(fields: [leadSourceId], references: [id], onDelete: SetNull)
+  sourceApiKey     ApiKey?      @relation(fields: [sourceApiKeyId], references: [id], onDelete: SetNull)
+  consentProof     LeadConsent?
+  allocations      Allocation[]
+  auditLogs        AuditLog[]
+
+  @@unique([leadSourceId, externalId])
+  @@index([status, category, postalCode])
+  @@index([sourceCompanyId, receivedAt])
+  @@index([leadSourceId, receivedAt])
+}
+
+// Structured consent evidence is kept separate from the lead payload so that
+// retention and audit queries do not need to interpret arbitrary JSON.
+model LeadConsent {
+  id               String   @id @default(uuid()) @db.Uuid
+  leadId           String   @unique @db.Uuid
+  capturedAt       DateTime
+  version          String
+  source           String
+  ipHash           String?
+  userAgentHash    String?
+  proofHash        String?
+  marketingAllowed Boolean  @default(false)
+  metadata         Json     @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  lead             Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([capturedAt])
+}
+
+// Generic distribution record for new opportunity types. The legacy Lead model
+// remains the compatibility adapter for existing sales-lead publishers.
+model Opportunity {
+  id                      String                  @id @default(uuid()) @db.Uuid
+  type                    OpportunityType
+  sourceCompanyId         String                  @db.Uuid
+  leadSourceId            String?                 @db.Uuid
+  sourceApiKeyId          String?                 @db.Uuid
+  externalId              String?
+  duplicateFingerprint    String
+  status                  LeadStatus              @default(NEW)
+  category                String
+  service                 String?
+  sourceWebsite           String?
+  city                    String?
+  region                  String?
+  postalCode              String
+  firstName               String
+  lastName                String
+  email                   String?
+  phone                   String?
+  description             String?
+  maxBuyersPerOpportunity Int                     @default(1)
+  exclusive               Boolean                 @default(true)
+  metadata                Json                    @default("{}")
+  consentAt               DateTime
+  receivedAt              DateTime                @default(now())
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+  sourceCompany           Company                 @relation("OpportunitySourceCompany", fields: [sourceCompanyId], references: [id], onDelete: Restrict)
+  leadSource              LeadSource?             @relation(fields: [leadSourceId], references: [id], onDelete: SetNull)
+  sourceApiKey            ApiKey?                 @relation(fields: [sourceApiKeyId], references: [id], onDelete: SetNull)
+  consentProof            OpportunityConsent?
+  candidateProfile        CandidateProfile?
+  allocations             OpportunityAllocation[]
+  auditLogs               AuditLog[]
+
+  @@unique([leadSourceId, externalId, type])
+  @@index([type, status, category, postalCode])
+  @@index([sourceCompanyId, receivedAt])
+  @@index([leadSourceId, receivedAt])
+}
+
+model OpportunityConsent {
+  id                   String      @id @default(uuid()) @db.Uuid
+  opportunityId        String      @unique @db.Uuid
+  consentGiven         Boolean
+  consentTextVersion   String
+  consentTimestamp     DateTime
+  privacyPolicyVersion String
+  sourceWebsite        String
+  ipHash               String?
+  userAgentHash        String?
+  proofHash            String?
+  metadata             Json        @default("{}")
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  opportunity          Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@index([consentTimestamp])
+}
+
+model CandidateProfile {
+  id                String      @id @default(uuid()) @db.Uuid
+  opportunityId     String      @unique @db.Uuid
+  desiredRole       String
+  jobCategory       String
+  desiredDistanceKm Int?
+  availableHours    Int?
+  availableDays     String[]    @default([])
+  educationLevel    String?
+  experienceYears   Int?
+  driversLicense    Boolean     @default(false)
+  availabilityDate  DateTime?
+  salaryIndication  Int?
+  motivation        String?
+  cvUrl             String?
+  answers           Json        @default("{}")
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  opportunity       Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@index([jobCategory, desiredRole])
+}
+
+// HMAC signatures and explicit idempotency keys are claimed transactionally
+// with the lead. This prevents a valid request from being replayed after a
+// failed or concurrent ingest attempt.
+model IngestReplay {
+  id          String   @id @default(uuid()) @db.Uuid
+  apiKeyId    String   @db.Uuid
+  replayKey   String
+  requestHash String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  apiKey      ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@unique([apiKeyId, replayKey])
+  @@index([expiresAt])
+}
+
+model LeadCategory {
+  id                String                  @id @default(uuid()) @db.Uuid
+  slug              String                  @unique
+  name              String
+  description       String?
+  active            Boolean                 @default(true)
+  defaultPriceCents Int
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  services          Service[]
+  preferences       CompanyLeadPreference[]
+}
+
+model Service {
+  id          String                  @id @default(uuid()) @db.Uuid
+  categoryId  String                  @db.Uuid
+  slug        String
+  name        String
+  active      Boolean                 @default(true)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  category    LeadCategory            @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  preferences CompanyLeadPreference[]
+
+  @@unique([categoryId, slug])
+}
+
+model CompanyLeadPreference {
+  id             String       @id @default(uuid()) @db.Uuid
+  companyId      String       @db.Uuid
+  categoryId     String       @db.Uuid
+  serviceId      String?      @db.Uuid
+  preferenceKey  String
+  active         Boolean      @default(true)
+  maxWeeklyLeads Int?
+  extraFilters   Json         @default("{}")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  category       LeadCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  service        Service?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@unique([companyId, preferenceKey])
+  @@index([companyId, active])
+}
+
+model CandidatePreference {
+  id                      String   @id @default(uuid()) @db.Uuid
+  companyId               String   @db.Uuid
+  category                String
+  desiredRole             String?
+  region                  String?
+  postalPrefixes          String[] @default([])
+  maxDistanceKm           Int?
+  minimumHours            Int?
+  maximumHours            Int?
+  minimumExperienceYears  Int?
+  driversLicenseRequired  Boolean  @default(false)
+  maxWeeklyCandidates     Int?
+  minimumWeeklyCandidates Int?     @default(1)
+  exclusiveOnly           Boolean  @default(false)
+  maxPriceCents           Int?
+  active                  Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  company                 Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, active, category])
+}
+
+model CompanyRegion {
+  id             String   @id @default(uuid()) @db.Uuid
+  companyId      String   @db.Uuid
+  region         String
+  postalPrefixes String[] @default([])
+  radiusKm       Int?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, region])
+}
+
+model CompanyAgreement {
+  id         String   @id @default(uuid()) @db.Uuid
+  companyId  String   @db.Uuid
+  type       String
+  version    String
+  acceptedAt DateTime
+  ipHash     String?
+  createdAt  DateTime @default(now())
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@unique([companyId, type, version])
+}
+
+model SepaMandate {
+  id                      String        @id @default(uuid()) @db.Uuid
+  companyId               String        @db.Uuid
+  provider                String        @default("stripe")
+  providerMandateId       String?       @unique
+  status                  MandateStatus @default(PENDING)
+  lastSuccessfulPaymentAt DateTime?
+  failedPaymentCount      Int           @default(0)
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  company                 Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@unique([companyId, provider])
+  @@index([companyId, status])
+}
+
+model Payment {
+  id                String        @id @default(uuid()) @db.Uuid
+  companyId         String        @db.Uuid
+  invoiceId         String?       @db.Uuid
+  providerPaymentId String?       @unique
+  status            PaymentStatus @default(PENDING)
+  amountCents       Int
+  currency          String        @default("EUR") @db.Char(3)
+  failureCode       String?
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  company           Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  invoice           Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, status, createdAt])
+}
+
+model NotificationPreference {
+  id        String   @id @default(uuid()) @db.Uuid
+  companyId String   @db.Uuid
+  eventType String
+  email     Boolean  @default(true)
+  sms       Boolean  @default(false)
+  whatsapp  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, eventType])
+}
+
+model WeeklyCommitment {
+  id              String          @id @default(uuid()) @db.Uuid
+  companyId       String          @db.Uuid
+  weekStart       DateTime
+  opportunityType OpportunityType @default(SALES_LEAD)
+  minimumLeads    Int
+  deliveredLeads  Int             @default(0)
+  billableLeads   Int             @default(0)
+  shortfall       Int             @default(0)
+  exceptionReason String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  company         Company         @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@unique([companyId, weekStart, opportunityType])
+  @@index([companyId, opportunityType, weekStart])
+}
+
+model PricingRule {
+  id                     String                  @id @default(uuid()) @db.Uuid
+  companyId              String                  @db.Uuid
+  name                   String
+  category               String
+  opportunityType        OpportunityType         @default(SALES_LEAD)
+  service                String?
+  region                 String?
+  postalPrefixes         String[]                @default([])
+  priceCents             Int
+  exclusivePriceCents    Int?
+  sharedPriceCents       Int?
+  maxBuyers              Int?
+  currency               String                  @default("EUR") @db.Char(3)
+  priority               Int                     @default(0)
+  active                 Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  company                Company                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  allocations            Allocation[]
+  opportunityAllocations OpportunityAllocation[]
+
+  @@index([companyId, active, opportunityType, category])
+}
+
+model OpportunityAllocation {
+  id              String           @id @default(uuid()) @db.Uuid
+  companyId       String           @db.Uuid
+  opportunityId   String           @db.Uuid
+  pricingRuleId   String?          @db.Uuid
+  status          AllocationStatus @default(PENDING)
+  candidateStatus CandidateStatus  @default(NEW)
+  internalNotes   String?
+  viewedAt        DateTime?
+  score           Int
+  priceCents      Int
+  currency        String           @default("EUR") @db.Char(3)
+  priceSnapshot   Json
+  allocatedAt     DateTime         @default(now())
+  acceptedAt      DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  opportunity     Opportunity      @relation(fields: [opportunityId], references: [id], onDelete: Restrict)
+  pricingRule     PricingRule?     @relation(fields: [pricingRuleId], references: [id], onDelete: SetNull)
+  invoiceLine     InvoiceLine?
+
+  @@unique([companyId, opportunityId])
+  @@index([companyId, status, allocatedAt])
+  @@index([opportunityId, status])
+}
+
+model Allocation {
+  id            String            @id @default(uuid()) @db.Uuid
+  companyId     String            @db.Uuid
+  leadId        String            @db.Uuid
+  pricingRuleId String?           @db.Uuid
+  status        AllocationStatus  @default(PENDING)
+  companyStatus CompanyLeadStatus @default(NEW)
+  internalNotes String?
+  viewedAt      DateTime?
+  score         Int
+  priceCents    Int
+  currency      String            @default("EUR") @db.Char(3)
+  priceSnapshot Json
+  allocatedAt   DateTime          @default(now())
+  acceptedAt    DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  company       Company           @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  lead          Lead              @relation(fields: [leadId], references: [id], onDelete: Restrict)
+  pricingRule   PricingRule?      @relation(fields: [pricingRuleId], references: [id], onDelete: SetNull)
+  invoiceLine   InvoiceLine?
+  disputes      Dispute[]
+  auditLogs     AuditLog[]
+
+  @@unique([companyId, leadId])
+  @@index([companyId, status, allocatedAt])
+}
+
+model Invoice {
+  id              String        @id @default(uuid()) @db.Uuid
+  companyId       String        @db.Uuid
+  stripeInvoiceId String?       @unique
+  status          InvoiceStatus @default(DRAFT)
+  currency        String        @default("EUR") @db.Char(3)
+  subtotalCents   Int           @default(0)
+  taxCents        Int           @default(0)
+  totalCents      Int           @default(0)
+  creditedCents   Int           @default(0)
+  periodStart     DateTime
+  periodEnd       DateTime
+  dueAt           DateTime?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  company         Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  lines           InvoiceLine[]
+  auditLogs       AuditLog[]
+  payments        Payment[]
+
+  @@unique([companyId, periodStart, periodEnd])
+  @@index([companyId, status, periodEnd])
+}
+
+model InvoiceLine {
+  id                      String                 @id @default(uuid()) @db.Uuid
+  invoiceId               String                 @db.Uuid
+  allocationId            String?                @unique @db.Uuid
+  opportunityAllocationId String?                @unique @db.Uuid
+  description             String
+  quantity                Int                    @default(1)
+  unitCents               Int
+  totalCents              Int
+  createdAt               DateTime               @default(now())
+  invoice                 Invoice                @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  allocation              Allocation?            @relation(fields: [allocationId], references: [id], onDelete: Restrict)
+  opportunityAllocation   OpportunityAllocation? @relation(fields: [opportunityAllocationId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+}
+
+model Dispute {
+  id             String        @id @default(uuid()) @db.Uuid
+  companyId      String        @db.Uuid
+  allocationId   String        @db.Uuid
+  openedByUserId String?       @db.Uuid
+  status         DisputeStatus @default(OPEN)
+  reason         String
+  notes          String?
+  resolution     String?
+  resolvedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  company        Company       @relation("DisputeCompany", fields: [companyId], references: [id], onDelete: Restrict)
+  allocation     Allocation    @relation(fields: [allocationId], references: [id], onDelete: Restrict)
+  openedBy       User?         @relation("DisputeOpenedBy", fields: [openedByUserId], references: [id], onDelete: SetNull)
+  auditLogs      AuditLog[]
+
+  @@index([companyId, status, createdAt])
+  @@index([allocationId])
+}
+
+model AuditLog {
+  id            String         @id @default(uuid()) @db.Uuid
+  companyId     String?        @db.Uuid
+  actorUserId   String?        @db.Uuid
+  actorApiKeyId String?        @db.Uuid
+  actorType     AuditActorType
+  action        String
+  entityType    String
+  entityId      String
+  requestId     String?
+  metadata      Json           @default("{}")
+  createdAt     DateTime       @default(now())
+  company       Company?       @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  actorUser     User?          @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorApiKey   ApiKey?        @relation(fields: [actorApiKeyId], references: [id], onDelete: SetNull)
+  lead          Lead?          @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  leadId        String?        @db.Uuid
+  opportunity   Opportunity?   @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  opportunityId String?        @db.Uuid
+  allocation    Allocation?    @relation(fields: [allocationId], references: [id], onDelete: SetNull)
+  allocationId  String?        @db.Uuid
+  invoice       Invoice?       @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  invoiceId     String?        @db.Uuid
+  dispute       Dispute?       @relation(fields: [disputeId], references: [id], onDelete: SetNull)
+  disputeId     String?        @db.Uuid
+
+  @@index([companyId, createdAt])
+  @@index([entityType, entityId, createdAt])
+}
+
+model StripeWebhookEvent {
+  id          String    @id @default(uuid()) @db.Uuid
+  eventId     String    @unique
+  eventType   String
+  companyId   String?   @db.Uuid
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+  company     Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, receivedAt])
+}
+
+// Shared, database-backed fixed-window counters. Keeping these in Postgres makes
+// auth throttling effective across serverless instances and deploys.
+model RateLimitEntry {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model OutboxEvent {
+  id            String       @id @default(uuid()) @db.Uuid
+  dedupeKey     String       @unique
+  eventType     String
+  aggregateType String
+  aggregateId   String       @db.Uuid
+  companyId     String?      @db.Uuid
+  payload       Json
+  status        OutboxStatus @default(PENDING)
+  attempts      Int          @default(0)
+  availableAt   DateTime     @default(now())
+  lockedAt      DateTime?
+  processedAt   DateTime?
+  lastError     String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  company       Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([status, availableAt])
+  @@index([aggregateType, aggregateId, createdAt])
+}

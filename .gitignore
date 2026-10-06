@@ -1,0 +1,13 @@
+.vercel
+.env*
+!.env.example
+.npm-cache/
+.pnpm-store/
+tinyhousekopennederland/
+/assets/
+.chrome-debug
+node_modules/
+.next/
+*.log
+coverage/
+*.tsbuildinfo

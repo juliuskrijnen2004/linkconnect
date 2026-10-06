@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { ButtonLink, TextLink } from "../../components/marketing/button-link";
 import { CtaBand } from "../../components/marketing/page-intro";
 import { DashboardPreview } from "../../components/marketing/dashboard-preview";
@@ -42,19 +41,12 @@ export default function HomePage() {
             <span>Minimaal 2 per week</span>
           </div>
         </div>
-        <div className="hero-media" aria-label="Het team achter LinkConnect">
-          <Image
-            src="/assets/linkconnect-founders.png"
-            alt="De oprichters van LinkConnect"
-            fill
-            priority
-            sizes="(max-width: 900px) 100vw, 52vw"
-          />
-          <div className="hero-media-note">
-            <span className="status-dot" aria-hidden="true" />
-            <span>Geselecteerd op jouw categorie en regio</span>
-          </div>
-        </div>
+        <aside className="hero-signal" aria-label="Zo werkt LinkConnect">
+          <span className="signal-label">Jouw groeimachine</span>
+          <div className="signal-flow"><span>Vraag</span><i /><span>Match</span><i /><span>Gesprek</span></div>
+          <strong>Elke kans komt met een duidelijke reden.</strong>
+          <p>Categorie, regio en behoefte worden vooraf gecontroleerd. Jij ziet direct wat je volgende stap is.</p>
+        </aside>
       </section>
 
       <section className="section-band section-band-tight" aria-label="LinkConnect uitgangspunten">

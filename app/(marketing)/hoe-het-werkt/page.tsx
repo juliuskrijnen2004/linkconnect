@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { ButtonLink, TextLink } from "../../../components/marketing/button-link";
 import { CtaBand, PageIntro } from "../../../components/marketing/page-intro";
 import { ProcessSteps } from "../../../components/marketing/process-steps";
@@ -57,13 +56,13 @@ export default function HowItWorksPage() {
       </section>
 
       <section className="section-content page-width split-layout image-copy-section">
-        <div className="media-card">
-          <Image
-            src="/assets/linkconnect-cover.png"
-            alt="LinkConnect logo op een donkerblauwe achtergrond"
-            fill
-            sizes="(max-width: 900px) 100vw, 48vw"
-          />
+        <div className="process-note" aria-label="Overzichtelijke opvolging">
+          <span className="feature-index">OVERZICHT</span>
+          <strong>Nieuwe kans</strong>
+          <p>Volledige context, direct klaar voor opvolging.</p>
+          <span className="process-note-line" />
+          <strong>Volgende stap</strong>
+          <p>Jouw team kiest zelf hoe en wanneer het contact opneemt.</p>
         </div>
         <div className="section-heading">
           <p className="eyebrow">Gemaakt voor opvolging</p>

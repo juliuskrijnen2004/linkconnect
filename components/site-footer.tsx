@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export default function SiteFooter() {
@@ -6,7 +5,7 @@ export default function SiteFooter() {
     <footer className="site-footer">
       <div className="footer-main">
         <Link className="brand brand-footer" href="/" aria-label="LinkConnect home">
-          <Image
+          <img
             className="brand-logo"
             src="/assets/linkconnect-logo-white-transparent.png"
             alt="LinkConnect"

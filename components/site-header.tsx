@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 const navItems = [
@@ -14,13 +13,12 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <Link className="brand" href="/" aria-label="LinkConnect home">
-        <Image
+        <img
           className="brand-logo"
           src="/assets/linkconnect-logo-white-transparent.png"
           alt="LinkConnect"
           width={800}
           height={120}
-          priority
         />
       </Link>
       <nav className="main-nav" aria-label="Hoofdnavigatie">

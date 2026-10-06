@@ -13,7 +13,7 @@ export default function SiteFooter() {
             height={120}
           />
         </Link>
-        <p>Relevante B2B-leads uit ons eigen netwerk. Geselecteerd op categorie en regio.</p>
+        <p>Relevante B2B-leads en passende kandidaten uit ons eigen netwerk. Geselecteerd op categorie, functie en regio.</p>
       </div>
       <div className="footer-links">
         <div>
@@ -37,7 +37,7 @@ export default function SiteFooter() {
       </div>
       <div className="footer-bottom">
         <span>© LinkConnect</span>
-        <span>B2B lead-distributieplatform</span>
+        <span>B2B lead- en kandidaatdistributieplatform</span>
       </div>
     </footer>
   );

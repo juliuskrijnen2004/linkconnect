@@ -6,11 +6,11 @@ import "./marketing.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "LinkConnect | Relevante B2B-leads",
+    default: "LinkConnect | B2B-leads en kandidaten",
     template: "%s | LinkConnect",
   },
   description:
-    "Ontvang relevante B2B-leads uit het eigen netwerk van LinkConnect. Betaal per lead, zonder abonnement, op basis van categorie en regio.",
+    "Ontvang relevante B2B-leads en passende kandidaten uit het eigen netwerk van LinkConnect. Betaal per ontvangen kans, zonder abonnement.",
 };
 
 export default function MarketingLayout({ children }: Readonly<{ children: ReactNode }>) {

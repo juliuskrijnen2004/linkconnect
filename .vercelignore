@@ -2,7 +2,7 @@
 desktop-home.png
 mobile-home.png
 mobile-contact.png
-assets/
+/assets/
 index.html
 contact.html
 styles.css

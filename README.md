@@ -167,4 +167,4 @@ npm test
 npm run build
 ```
 
-The normal release path is Git `main` to GitHub Actions, then the existing Vercel project. Apply checked-in migrations with `prisma migrate deploy`; never run `migrate reset` or the development seed in production. Configure Vercel Cron, Stripe test-mode SEPA/webhooks, transactional email, monitoring, database backups, and legal/privacy review before commercial traffic.
+The normal release path is Git `main` to GitHub Actions, then the existing Vercel project. Apply checked-in migrations with `prisma migrate deploy`; never run `migrate reset` or the development seed in production. The checked-in cron uses Vercel Hobby's maximum daily frequency; use Vercel Pro or an external authenticated scheduler for near-real-time outbox processing before commercial traffic. Configure Stripe test-mode SEPA/webhooks, transactional email, monitoring, database backups, and legal/privacy review before commercial traffic.

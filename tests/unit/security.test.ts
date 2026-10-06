@@ -34,7 +34,10 @@ describe("server security helpers", () => {
     const encrypted = encryptSecret("hmac-secret");
     const [iv, tag, ciphertext] = encrypted.split(".");
 
-    expect(() => decryptSecret(`${iv}.${tag}.${ciphertext.slice(0, -1)}x`)).toThrow();
+    const alteredTag = Buffer.from(tag, "base64url");
+    alteredTag[0] ^= 1;
+
+    expect(() => decryptSecret(`${iv}.${alteredTag.toString("base64url")}.${ciphertext}`)).toThrow();
     expect(() => decryptSecret("not-a-secret")).toThrow("Malformed encrypted secret");
   });
 

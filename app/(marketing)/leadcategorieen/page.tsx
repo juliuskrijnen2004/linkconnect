@@ -19,21 +19,21 @@ export default function LeadCategoriesPage() {
     <>
       <div className="page-width page-top">
         <PageIntro
-          eyebrow="Leadcategorieën"
-          title="Kies waar je gevonden wilt worden."
-          description="Een duidelijke categorie maakt een betere match mogelijk. Kies het speelveld waarin jouw bedrijf het meeste waarde toevoegt."
+          eyebrow="Kansen en functies"
+          title="Kies waar je gevonden en versterkt wilt worden."
+          description="Een duidelijke categorie maakt een betere match mogelijk. Kies waar je nieuwe klanten, sollicitanten of beide wilt ontvangen."
         >
-          <ButtonLink href="/contact">Bespreek jouw categorie</ButtonLink>
+          <ButtonLink href="/contact">Bespreek jouw focus</ButtonLink>
         </PageIntro>
       </div>
 
       <section className="section-content page-width" aria-labelledby="category-grid-title">
         <div className="section-heading narrow-heading">
           <p className="eyebrow">Overzicht</p>
-          <h2 id="category-grid-title">Van specialistische expertise tot regionale dienstverlening.</h2>
+          <h2 id="category-grid-title">Van specialistische expertise tot passende functies.</h2>
           <p>
-            Staat jouw exacte niche er niet tussen? Beschrijf wat je doet; samen maken we de juiste categorie
-            concreet.
+            Gebruik deze categorieën voor klantaanvragen of om de functies te omschrijven waarvoor je
+            sollicitanten zoekt. Staat jouw exacte niche er niet tussen? Dan maken we die samen concreet.
           </p>
         </div>
         <div className="category-grid">
@@ -51,8 +51,8 @@ export default function LeadCategoriesPage() {
         <div className="page-width region-section">
           <div className="section-heading narrow-heading">
             <p className="eyebrow">Regio als filter</p>
-            <h2 id="region-title">Werk op de plek waar je relaties wilt opbouwen.</h2>
-            <p>Combineer je categorie met een regio die past bij je capaciteit, reistijd en commerciële focus.</p>
+            <h2 id="region-title">Werk op de plek waar je relaties en teams wilt opbouwen.</h2>
+            <p>Combineer je categorie of functie met een regio die past bij je capaciteit, reistijd en commerciële focus.</p>
           </div>
           <div className="region-list" aria-label="Voorbeelden van regiofilters">
             {regions.map((region) => (
@@ -67,7 +67,7 @@ export default function LeadCategoriesPage() {
 
       <div className="page-width">
         <CtaBand
-          title="Jouw categorie staat nog niet op de kaart?"
+          title="Jouw categorie of functie staat nog niet op de kaart?"
           description="Dat is precies waarom we graag even kennismaken. Een scherpe omschrijving is vaak de start van een goede match."
         >
           <ButtonLink href="/contact">Vertel wat je doet</ButtonLink>

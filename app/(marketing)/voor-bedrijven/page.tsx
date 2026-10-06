@@ -27,8 +27,8 @@ export default function ForBusinessesPage() {
       <div className="page-width page-top">
         <PageIntro
           eyebrow="Voor bedrijven"
-          title="Meer opdrachten, met leads die bij je passen."
-          description="LinkConnect helpt B2B-aanbieders aan relevante introducties uit een eigen netwerk. Jij brengt de expertise; wij helpen de juiste bedrijven in beeld te krijgen."
+          title="Meer opdrachten én passende sollicitanten."
+          description="LinkConnect helpt B2B-bedrijven aan relevante klantvragen en beschikbare kandidaten uit een eigen netwerk. Jij kiest welke instroom bij je team past."
         >
           <ButtonLink href="/contact">Bespreek jouw groeifocus</ButtonLink>
           <ButtonLink href="/leadcategorieen" variant="secondary">
@@ -42,7 +42,7 @@ export default function ForBusinessesPage() {
           <MetricStrip
             items={[
               { value: "Eigen", label: "netwerk" },
-              { value: "Per lead", label: "betalen" },
+              { value: "Per kans", label: "betalen" },
               { value: "€0", label: "abonnement" },
               { value: "2+", label: "per week" },
             ]}
@@ -53,10 +53,10 @@ export default function ForBusinessesPage() {
       <section className="section-content page-width" aria-labelledby="business-types-title">
         <div className="section-heading narrow-heading">
           <p className="eyebrow">Voor wie</p>
-          <h2 id="business-types-title">Voor teams die weten wie ze willen helpen.</h2>
+          <h2 id="business-types-title">Voor teams die weten wie ze zoeken.</h2>
           <p>
-            Een goede lead is geen willekeurige aanvraag. Het is een organisatie die past bij je aanbod, markt en
-            manier van werken.
+            Een goede lead of kandidaat is geen willekeurige naam. Het is een match die past bij je aanbod,
+            vacature, regio en manier van werken.
           </p>
         </div>
         <div className="feature-grid two-columns">
@@ -74,20 +74,20 @@ export default function ForBusinessesPage() {
         <div className="page-width split-layout choice-section">
           <div>
             <p className="eyebrow">Jij houdt de regie</p>
-            <h2 id="business-choice-title">Je bepaalt zelf waar je capaciteit naartoe gaat.</h2>
-            <p>
-              Begin met een categorie en regio die je team aankan. Zo groeit de instroom mee met je opvolging en
-              blijft kwaliteit het uitgangspunt.
+          <h2 id="business-choice-title">Je bepaalt zelf waar je capaciteit naartoe gaat.</h2>
+          <p>
+              Begin met klantaanvragen, sollicitanten of allebei. Met een heldere categorie, functie en regio
+              groeit de instroom mee met je opvolging en blijft kwaliteit het uitgangspunt.
             </p>
           </div>
           <div className="choice-list">
             <div>
-              <strong>Categorie</strong>
+              <strong>Klantaanvragen</strong>
               <span>Ontvang alleen leads die aansluiten op je expertise.</span>
             </div>
             <div>
-              <strong>Regio</strong>
-              <span>Werk lokaal, landelijk of met een duidelijke zakelijke regio.</span>
+              <strong>Kandidaten</strong>
+              <span>Ontvang sollicitanten die aansluiten op functie, ervaring en regio.</span>
             </div>
             <div>
               <strong>Opvolging</strong>
@@ -102,8 +102,8 @@ export default function ForBusinessesPage() {
           <p className="eyebrow">Praktisch ingericht</p>
           <h2>Geen extra abonnement om mee te doen.</h2>
           <p>
-            Je betaalt per lead. Het minimum van 2 leads per week maakt de samenwerking concreet en geeft beide
-            kanten genoeg ritme om resultaat te zien.
+            Je betaalt per ontvangen lead of kandidaat. Afspraken over minimum en maximum houden de
+            samenwerking concreet en de instroom passend bij je capaciteit.
           </p>
           <TextLink href="/kosten">Lees hoe kosten zijn opgebouwd</TextLink>
         </div>
@@ -115,8 +115,8 @@ export default function ForBusinessesPage() {
 
       <div className="page-width">
         <CtaBand
-          title="Klaar om je ideale lead scherper te krijgen?"
-          description="Vertel ons welke categorie en regio je bedient. We verkennen samen of er een goede match is."
+          title="Klaar om je ideale lead of kandidaat scherper te krijgen?"
+          description="Vertel ons welke categorie, functie en regio je zoekt. We verkennen samen of er een goede match is."
         >
           <ButtonLink href="/contact">Plan een gesprek</ButtonLink>
         </CtaBand>

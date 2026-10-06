@@ -5,18 +5,18 @@ import { ProcessSteps } from "../../../components/marketing/process-steps";
 const steps = [
   {
     number: "01",
-    title: "Kies je categorie en regio",
-    description: "Je geeft aan in welke markt je actief bent en welke regio voor jouw team relevant is.",
+    title: "Kies wat je zoekt",
+    description: "Kies klantaanvragen, kandidaten of allebei. Daarna geef je categorie, functie en regio door.",
   },
   {
     number: "02",
     title: "Wij maken de match",
-    description: "Ons eigen netwerk levert signalen van bedrijven die passen bij jouw expertise en focus.",
+    description: "Ons eigen netwerk levert klantvragen en sollicitanten die passen bij jouw expertise en voorkeuren.",
   },
   {
     number: "03",
-    title: "Ontvang de lead",
-    description: "Je krijgt een lead met context, zodat je weet wie je spreekt en waar de behoefte ligt.",
+    title: "Ontvang je kans",
+    description: "Je krijgt een lead of kandidaat met context, zodat je weet wie je spreekt en waarom het past.",
   },
   {
     number: "04",
@@ -31,10 +31,10 @@ export default function HowItWorksPage() {
       <div className="page-width page-top">
         <PageIntro
           eyebrow="Hoe het werkt"
-          title="Van een goede match naar een gesprek."
-          description="LinkConnect maakt leadgeneratie praktisch: jij kiest de focus, wij zoeken in ons eigen netwerk naar bedrijven die passen."
+          title="Van een goede match naar een waardevol gesprek."
+          description="LinkConnect maakt instroom praktisch: jij kiest de focus, wij zoeken in ons eigen netwerk naar passende klantvragen en sollicitanten."
         >
-          <ButtonLink href="/contact">Start met jouw categorie</ButtonLink>
+          <ButtonLink href="/contact">Start met jouw vraag</ButtonLink>
           <ButtonLink href="/kosten" variant="secondary">
             Bekijk de kosten
           </ButtonLink>
@@ -47,8 +47,8 @@ export default function HowItWorksPage() {
             <p className="eyebrow">Vier duidelijke stappen</p>
             <h2 id="process-title">Jij bepaalt de richting. Wij houden de stroom op gang.</h2>
             <p>
-              De aanpak is gemaakt voor B2B-teams die relevante gesprekken willen voeren zonder zelf alle
-              losse zoek- en selectiestappen te organiseren.
+              De aanpak is gemaakt voor B2B-teams die relevante klanten en passende medewerkers willen
+              vinden zonder alle losse zoek- en selectiestappen zelf te organiseren.
             </p>
           </div>
           <ProcessSteps steps={steps} />
@@ -58,7 +58,7 @@ export default function HowItWorksPage() {
       <section className="section-content page-width split-layout image-copy-section">
         <div className="process-note" aria-label="Overzichtelijke opvolging">
           <span className="feature-index">OVERZICHT</span>
-          <strong>Nieuwe kans</strong>
+          <strong>Nieuwe lead of kandidaat</strong>
           <p>Volledige context, direct klaar voor opvolging.</p>
           <span className="process-note-line" />
           <strong>Volgende stap</strong>
@@ -68,12 +68,12 @@ export default function HowItWorksPage() {
           <p className="eyebrow">Gemaakt voor opvolging</p>
           <h2>Je hoeft niet harder te zoeken. Je moet beter kunnen kiezen.</h2>
           <p>
-            Door vooraf categorie en regio scherp te zetten, begint ieder contact met een reden. Het dashboard
-            helpt je daarna om snel en persoonlijk te reageren.
+            Door vooraf categorie, functie en regio scherp te zetten, begint ieder contact met een reden.
+            Het dashboard helpt je daarna om snel en persoonlijk te reageren.
           </p>
           <ul className="check-list">
             <li>Een duidelijke focus voor je team</li>
-            <li>Leads met meer context dan een losse naam</li>
+            <li>Leads en sollicitanten met meer context dan een losse naam</li>
             <li>Een vaste plek om kansen op te volgen</li>
           </ul>
           <TextLink href="/voor-bedrijven">Bekijk voor wie dit werkt</TextLink>
@@ -83,8 +83,8 @@ export default function HowItWorksPage() {
       <div className="page-width">
         <CtaBand
           eyebrow="Een eerste match begint klein"
-          title="Kies één categorie. Kies één regio."
-          description="We maken de eerste stap overzichtelijk en kijken daarna samen wat bij jouw team past."
+          title="Kies één focus. Kies één regio."
+          description="We maken de eerste stap overzichtelijk, voor klantaanvragen, sollicitanten of een combinatie daarvan."
         >
           <ButtonLink href="/contact">Bespreek jouw focus</ButtonLink>
         </CtaBand>

@@ -3,7 +3,7 @@ import Link from "next/link";
 const navItems = [
   { href: "/hoe-het-werkt", label: "Hoe het werkt" },
   { href: "/voor-bedrijven", label: "Voor bedrijven" },
-  { href: "/leadcategorieen", label: "Leadcategorieën" },
+  { href: "/leadcategorieen", label: "Kansen & functies" },
   { href: "/kosten", label: "Kosten" },
   { href: "/faq", label: "FAQ" },
   { href: "/inloggen", label: "Inloggen" },
